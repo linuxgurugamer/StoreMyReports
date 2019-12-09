@@ -31,6 +31,26 @@ namespace StoreMyReports
         private static Vector3 experimentsResultDialogPosition;
         private bool isExperimentsResultDialogOpen;
 
+        void Awake()
+        {
+            // OnExperimentStored
+            // OnROCExperimentStored;
+            GameEvents.OnExperimentStored.Add(OnExperimentStored);
+            GameEvents.OnROCExperimentStored.Add(OnExperimentStored);
+        }
+
+        void OnExperimentStored(ScienceData sd)
+        {
+            Debug.Log("OnExperimentStored");
+            OnExperimentsResultDialogClosed();
+        }
+
+        void OnDestroy()
+        {
+            GameEvents.OnExperimentStored.Remove(OnExperimentStored);
+            GameEvents.OnROCExperimentStored.Remove(OnExperimentStored);
+        }
+
         private void OnExperimentsResultDialogClosed()
         {
             if (FlightGlobals.ActiveVessel != null)
@@ -71,7 +91,7 @@ namespace StoreMyReports
                                         allowDataTransfer = false;
 
                                         // discard duplicates
-                                        if (Config.DiscardDuplicates)
+                                        if (HighLogic.CurrentGame.Parameters.CustomParams<SMR>().discardDuplicates)
                                         {
                                             experiment.DumpData(experimentData);
                                         }
@@ -91,28 +111,32 @@ namespace StoreMyReports
             }
         }
 
+#if false
         private void OnExperimentsResultDialogOpened()
         {
-            if (Config.SaveExperimentsResultDialogPosition)
+            //if (HighLogic.CurrentGame.Parameters.CustomParams<SMR>().saveExperimentsResultDialogPosition)
             {
                 // set experiments result dialog position to stored position
                 ExperimentsResultDialog.Instance.transform.position = experimentsResultDialogPosition;
             }
         }
-
-        private void Update()
+#endif
+        private void LateUpdate()
         {
+#if false
             // check experiments result dialog has closed on this frame
             if (isExperimentsResultDialogOpen && ExperimentsResultDialog.Instance == null)
             {
                 OnExperimentsResultDialogClosed();
             }
+#endif
             if (ExperimentsResultDialog.Instance != null)
             {
                 // check experiments result dialog has opened on this frame
-                if (isExperimentsResultDialogOpen == false)
+                if (isExperimentsResultDialogOpen == false && HighLogic.CurrentGame.Parameters.CustomParams<SMR>().saveExperimentsResultDialogPosition)
                 {
-                    OnExperimentsResultDialogOpened();
+                    //ExperimentsResultDialogOpened();
+                    ExperimentsResultDialog.Instance.transform.position = experimentsResultDialogPosition;
                 }
 
                 // update experiments result dialog stored position
